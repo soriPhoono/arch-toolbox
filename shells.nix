@@ -4,12 +4,7 @@
       nixd
       nixpkgs-fmt
 
-      gcc
-      rustc
-      cargo
-      rustfmt
-      clippy
-      rust-analyzer
+      bash-language-server
     ];
 
     RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
