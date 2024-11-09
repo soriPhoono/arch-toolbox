@@ -5,8 +5,7 @@
       nixpkgs-fmt
 
       bash-language-server
+      shfmt
     ];
-
-    RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
   };
 }

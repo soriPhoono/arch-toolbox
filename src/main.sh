@@ -1,31 +1,22 @@
 #!/bin/bash
 
+source ./util.sh
 source ./logger.sh
-
-BUILD_DIR=/tmp/build
-
-set_build_dir() {
-    if [ ! -d $BUILD_DIR ]; then
-        mkdir -p $BUILD_DIR
-
-        if [ $? -ne 0 ]; then
-            log_error "Failed to create build directory."
-            exit 1
-        fi
-
-        log_info "Build directory created."
-    else
-        log_info "Build directory already exists."
-    fi
-
-    cd $BUILD_DIR
-}
 
 # Function to install paru
 install_paru() {
-    set_build_dir()
+    set_dir "/tmp/build"
 
-    if [ ! -x "$(command -v paru)" ]; then
+    if ! is_installed git; then
+        pacman -S --noconfirm git > /dev/null 2>&1
+
+        if [ $? -ne 0 ]; then
+            log_error "Failed to install git."
+            exit 1
+        fi
+    fi
+
+    if ! is_installed paru; then
         git clone https://aur.archlinux.org/paru.git
         cd paru
         makepkg -si
@@ -41,52 +32,12 @@ install_paru() {
     fi
 }
 
-# Function to display the menu
-show_menu() {
-    clear
-    echo "====================="
-    echo "  Arch Toolbox Menu  "
-    echo "====================="
-    echo "1. Update System"
-    echo "2. Install Feature"
-    echo "3. Remove Feature"
-    echo "4. System Information"
-    echo "5. Exit"
-    echo "====================="
-    echo -n "Please enter your choice [1-5]: "
+# Function to configure chaotic-aur
+configure_chaotic_aur() {
+    sudo pacman-key --recv-key 3056513887B78AEB --keyserver keyserver.ubuntu.com
+    sudo pacman-key --lsign-key 3056513887B78AEB
+    sudo pacman -U 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst'
+    sudo pacman -U 'https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst'
+
+    copy_system_file "/etc/pacman.conf"
 }
-
-# Function to update the system
-update_system() {
-    sudo pacman -Syu
-}
-
-# Function to install a list of packages in packages.txt
-install_packages() {
-    sudo pacman -S --noconfirm - < packages.txt
-}
-
-# Function to display system information
-system_info() {
-    uname -a
-    lscpu
-    free -h
-}
-
-install_paru
-
-# Main loop
-while true; do
-    show_menu
-    read choice
-    case $choice in
-        1) update_system ;;
-        2) install_package ;;
-        3) remove_package ;;
-        4) system_info ;;
-        5) exit 0 ;;
-        *) echo "Invalid choice, please try again." ;;
-    esac
-    echo -n "Press any key to continue..."
-    read -n 1
-done
